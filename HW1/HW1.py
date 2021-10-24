@@ -653,6 +653,8 @@ df
 # ## Questions
 
 # #### Q1. 𝑃(𝑋𝑠𝑡𝑎𝑙𝑘−𝑐𝑜𝑙𝑜𝑟−𝑏𝑒𝑙𝑜𝑤−𝑟𝑖𝑛𝑔|𝑌=𝑒) with and without Laplace smoothing by bar charts 
+# 
+# 重下面的 distrubution 可以看到，當加入的 Laplace ，會使 0 的機率上升，造成 accuracy 下降，但也不一定每次都是下降，加入 Laplace 這樣可以避免某些類別機率為 0 的狀況（可能是 trainning set 沒有相關數據的關係）。
 
 # In[29]:
 
