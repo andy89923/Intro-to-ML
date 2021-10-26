@@ -217,12 +217,12 @@ for j in range(num_class):
     sns.set(font_scale = 2)
     fig, axes = plt.subplots(num_features - 1, sharex = False, figsize=(20, 50))
 
-    plt.title(f'{iris_class[j]}')
     for i in range(num_features - 1):
         tmp_data = now_data[iris_header[i]]
+        tmp_name = f'{iris_class[j]} - {iris_header[i]}'
         
         p = sns.distplot(x = tmp_data, ax = axes[i], bins = 10)
-        p.set(xlabel = iris_header[i], ylabel = "cm")
+        p.set(xlabel = tmp_name, ylabel = "cm")
 
         aver = np.average(tmp_data)
         sigma = np.std(tmp_data)
@@ -507,7 +507,7 @@ def mush_kfold_lap(now_alpha = 1e3, typ = 0):
     print(f'Precision ave. = {pre_sum / flag}')
     print(mush_label)
     mat_sum /= flag
-    print_heatmap(mat_sum, f'Mushroom kfold sum, alpha = {now_alpha}')
+    print_heatmap(mat_sum, f'Mushroom kfold ave, alpha = {now_alpha}')
             
 
 
