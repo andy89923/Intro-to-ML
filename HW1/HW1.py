@@ -141,6 +141,7 @@ plt.savefig('Mushroom_target_feature.png')
 # * Split data based on their labels (targets) and show the data distribution of each feature again. 
 # 
 # ##### 這裡我使用 seaborn 中的 distplot 以及 boxplot 去看 iris dataset 中各個 feature 的數據分佈狀況
+# ##### 增加 histplot 看不同類型之間的分佈狀況
 
 # In[8]:
 
@@ -158,20 +159,19 @@ for i in range(num_features - 1):
     p.set(xlabel = iris_header[i], ylabel = "cm")
     
     aver = np.average(now_data)
-    median = np.median(now_data)
     sigma = np.std(now_data)
 
     print(f"{iris_header[i]} 𝜇  = {aver}, 𝜎 = {sigma}")
     
-    low = median - sigma
-    hi = median + sigma
+    low = aver - sigma
+    hi = aver + sigma
     
     line = p.lines[0].get_data()
     ipf = interp1d(x=line[0], y=line[1])
 
     p.plot([low, low], [0, ipf(low)], linewidth = now_linewidt)
     p.plot([hi, hi], [0, ipf(hi)], linewidth = now_linewidt)
-    p.plot([median, median], [0, ipf(median)], linewidth = now_linewidt)
+    p.plot([aver, aver], [0, ipf(aver)], linewidth = now_linewidt)
 
 sns.boxplot(data = iris_data, ax = axes[num_features - 1])
 plt.savefig('Iris_features_distribution.png')
@@ -188,10 +188,56 @@ fig, axes = plt.subplots(num_features - 1, sharex = False, figsize=(20, 50))
 for i in range(num_features - 1):
     now_data = iris_data[[iris_header[i], 'class']]
     
-    p = sns.histplot(x = iris_header[i], hue = "class", data = now_data, ax = axes[i], bins = 10)
+    p = sns.histplot(
+        x = iris_header[i], 
+        hue = "class", 
+        data = now_data, 
+        ax = axes[i], 
+        bins = 10
+    )
     p.set(xlabel = iris_header[i], ylabel = "cm")
 
 plt.savefig('Iris_target_feature.png')
+
+
+# In[10]:
+
+
+iris_class = list(set(iris_data[iris_header[-1]].tolist()))
+
+num_class = len(iris_class)
+
+for j in range(num_class):
+    now_data = iris_data.loc[iris_data[iris_header[-1]] == iris_class[j]]
+    
+    print(iris_class[j])
+    
+    num_features = now_data.shape[1]
+    
+    sns.set(font_scale = 2)
+    fig, axes = plt.subplots(num_features - 1, sharex = False, figsize=(20, 50))
+
+    plt.title(f'{iris_class[j]}')
+    for i in range(num_features - 1):
+        tmp_data = now_data[iris_header[i]]
+        
+        p = sns.distplot(x = tmp_data, ax = axes[i], bins = 10)
+        p.set(xlabel = iris_header[i], ylabel = "cm")
+
+        aver = np.average(tmp_data)
+        sigma = np.std(tmp_data)
+
+        print(f"{iris_header[i]} 𝜇  = {aver}, 𝜎 = {sigma}")
+
+        low = aver - sigma
+        hi = aver + sigma
+
+        line = p.lines[0].get_data()
+        ipf = interp1d(x=line[0], y=line[1])
+
+        p.plot([low, low], [0, ipf(low)], linewidth = now_linewidt)
+        p.plot([hi, hi], [0, ipf(hi)], linewidth = now_linewidt)
+        p.plot([aver, aver], [0, ipf(aver)], linewidth = now_linewidt)
 
 
 # ## Data Preprocessing
@@ -211,7 +257,7 @@ plt.savefig('Iris_target_feature.png')
 # Mush data shape = (8124, 22)
 # ```
 
-# In[10]:
+# In[11]:
 
 
 iris_data_drop = iris_data.replace(['', ' ', '?'], np.nan)
@@ -224,7 +270,7 @@ print(f'Iris data after drop shape = {iris_data_drop.shape}')
 print(f'Mush data after drop shape = {mush_data_drop.shape}')
 
 
-# In[11]:
+# In[12]:
 
 
 from sklearn.preprocessing import OrdinalEncoder
@@ -252,7 +298,7 @@ iris_y = iris_y.to_numpy()
 # #### 在 ```model_selection.train_test_split``` 中，將 ```test_size``` 設為 0.30 即為將 Holdout validation ratio 設為 7:3
 # #### 而在 ```model_selection.KFold``` 中，```n_splits``` 參數為 K-fold 的次數
 
-# In[12]:
+# In[13]:
 
 
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, CategoricalNB
@@ -265,7 +311,7 @@ from sklearn.exceptions import ConvergenceWarning
 warnings.simplefilter(action="ignore", category=ConvergenceWarning)
 
 
-# In[13]:
+# In[14]:
 
 
 def print_heatmap(mat, title):
@@ -276,7 +322,7 @@ def print_heatmap(mat, title):
     plt.show()
 
 
-# In[14]:
+# In[15]:
 
 
 def get_Result_Dic(y_test, y_predict, now_label, title, draw = True) -> dict:
@@ -303,13 +349,13 @@ def get_Result_Dic(y_test, y_predict, now_label, title, draw = True) -> dict:
 
 # ### Mushroom
 
-# In[15]:
+# In[16]:
 
 
 mush_result = {}
 
 
-# In[16]:
+# In[17]:
 
 
 def mush_holdout_lap(now_alpha = 1e3, typ = 0):
@@ -335,7 +381,7 @@ def mush_holdout_lap(now_alpha = 1e3, typ = 0):
     print(ret['report'])
 
 
-# In[17]:
+# In[18]:
 
 
 #  Holdout with Laplace smoothing
@@ -374,7 +420,7 @@ mush_holdout_lap(typ = 1)
 # weighted avg       0.90      0.88      0.88      2438
 # ```
 
-# In[18]:
+# In[19]:
 
 
 #  Holdout without Laplace smoothing (alpha = 1e-9)
@@ -413,7 +459,7 @@ mush_holdout_lap(1e-9, typ = 1)
 # ```
 # 
 
-# In[19]:
+# In[20]:
 
 
 def mush_kfold_lap(now_alpha = 1e3, typ = 0):
@@ -460,11 +506,12 @@ def mush_kfold_lap(now_alpha = 1e3, typ = 0):
     print(f'Recall    ave. = {rec_sum / flag}')
     print(f'Precision ave. = {pre_sum / flag}')
     print(mush_label)
+    mat_sum /= flag
     print_heatmap(mat_sum, f'Mushroom kfold sum, alpha = {now_alpha}')
             
 
 
-# In[20]:
+# In[21]:
 
 
 #  k-fold with Laplace smoothing (alpha = 1e3)
@@ -493,7 +540,7 @@ mush_kfold_lap(typ = 1)
 # ['p', 'e']
 # ```
 
-# In[21]:
+# In[22]:
 
 
 #  k-fold without Laplace smoothing (alpha = 1e-9)
@@ -523,13 +570,13 @@ mush_kfold_lap(1e-9, 1)
 
 # ### Iris
 
-# In[22]:
+# In[23]:
 
 
 iris_result = {}
 
 
-# In[23]:
+# In[24]:
 
 
 def iris_holdout():
@@ -547,7 +594,7 @@ def iris_holdout():
     print(ret['report'])
 
 
-# In[24]:
+# In[25]:
 
 
 iris_holdout()
@@ -566,7 +613,7 @@ iris_holdout()
 #    weighted avg       0.96      0.96      0.96        45
 # ```
 
-# In[25]:
+# In[26]:
 
 
 def iris_kfold():
@@ -606,10 +653,12 @@ def iris_kfold():
     print(f'Recall    ave. = {rec_sum / flag}')
     print(f'Precision ave. = {pre_sum / flag}')
     print(iris_label)
-    print_heatmap(mat_sum, f'Iris kfold sum')
+    
+    mat_sum /= flag
+    print_heatmap(mat_sum, f'Iris kfold ave.')
 
 
-# In[26]:
+# In[27]:
 
 
 iris_kfold()
@@ -629,7 +678,7 @@ iris_kfold()
 # 
 # 從下表中，可以看到不管是用 ```MultinomialNB``` or ```CategoricalNB```，當加上了 Laplace 都造成了 accuracy 下降，以及 racall 跟 precision 。但這個結論不能推論到全部的 Dataset ，這次為了加強差異才將 alpha 設大一點，以及造成影響也不一定都是不好的，要看 trainning 時使用的數據，以及 data 的特性。
 
-# In[27]:
+# In[28]:
 
 
 df = pd.DataFrame.from_dict(mush_result, orient = 'index')
@@ -641,7 +690,7 @@ df
 # ### Iris
 # 在下表中可以發現， Holdout 的 accuracy 比 K-fold 還要高，但也跟之中的 shuffle 有關係， training set 不一樣，也會有不一樣的結果，所以一個好的模型中，需要非常多的實驗與測試，選擇最好的那個方法。
 
-# In[28]:
+# In[29]:
 
 
 df = pd.DataFrame.from_dict(iris_result, orient = 'index')
@@ -656,7 +705,7 @@ df
 # 
 # 重下面的 distrubution 可以看到，當加入的 Laplace ，會使 0 的機率上升，造成 accuracy 下降，但也不一定每次都是下降，加入 Laplace 這樣可以避免某些類別機率為 0 的狀況（可能是 trainning set 沒有相關數據的關係）。
 
-# In[29]:
+# In[30]:
 
 
 now_data = mush_data.loc[mush_data[mush_header[0]] == 'e']
@@ -698,7 +747,7 @@ p.set(title = "P(color | e)  with Laplace = 1000")
 # #### Q2. What are the values of 𝜇 and 𝜎 of assumed 𝑃(𝑋𝑝𝑒𝑡𝑎𝑙_𝑙𝑒𝑛𝑔𝑡ℎ|𝑌=Iris Versicolour)? 
 # #### Q3. Use a graph to show the probability density function of assumed 𝑃(𝑋𝑝𝑒𝑡𝑎𝑙_𝑙𝑒𝑛𝑔𝑡ℎ|𝑌=Iris Versicolour)
 
-# In[30]:
+# In[31]:
 
 
 now_data = iris_data.loc[iris_data[iris_header[-1]] == 'Iris-versicolor']
@@ -711,19 +760,18 @@ p = sns.distplot(x = now_data, bins = 10)
 p.set(xlabel = tar_tags, ylabel = "cm")
 
 aver = np.average(now_data)
-median = np.median(now_data)
 sigma1 = np.std(now_data, ddof = 0)
 sigma2 = np.std(now_data, ddof = 1)
 
-low = median - sigma
-hi = median + sigma
+low = aver - sigma1
+hi = aver + sigma1
 
 line = p.lines[0].get_data()
 ipf = interp1d(x=line[0], y=line[1])
 
 p.plot([low, low], [0, ipf(low)], linewidth = now_linewidt)
 p.plot([hi, hi], [0, ipf(hi)], linewidth = now_linewidt)
-p.plot([median, median], [0, ipf(median)], linewidth = now_linewidt)
+p.plot([aver, aver], [0, ipf(aver)], linewidth = now_linewidt)
 p.set(title = "P(X_{petal length}|Y=Iris-versicolor)")
 
 print(f"𝜇  = {aver}, 𝜎 = {sigma1} (ddof = 0)")
